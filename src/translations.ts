@@ -15,10 +15,32 @@ export function translate<TranslationKey extends keyof Translations>(
 ) {
   console.log(i18nKey, variables);
 
-  return en[i18nKey];
+  const translation = en[i18nKey];
+
+  if(!translation) {
+    return '';
+  }
+  
+  
+  if(variables.length > 0) {
+    return replacePlaceholders(translation, variables[0]);
+  }
+
+  return translation;
 }
 
-export function setupTranslations() {
+function replacePlaceholders(inputString: string, replacementObject: Record<string, string>): string {
+  return inputString.replace(/\{(\w+)\}/g, (match, placeholder) => {
+    if (replacementObject.hasOwnProperty(placeholder)) {
+      return replacementObject[placeholder];
+    } else {
+      return match;
+    }
+  });
+}
+
+
+export function setupTranslations(_: HTMLDivElement) {
   console.log(translate("key1"));
   console.log(translate("key2", { placeholder1: "todo" }));
 }

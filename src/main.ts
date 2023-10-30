@@ -16,4 +16,4 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   </div>
 `;
 
-setupTranslations(document.querySelector<HTMLButtonElement>("#translations")!);
+setupTranslations(document.querySelector<HTMLDivElement>("#translations")!);
