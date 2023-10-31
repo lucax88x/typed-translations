@@ -3,41 +3,38 @@ import { en } from "./translations-en";
 type Translations = typeof en;
 type TranslationKey = keyof Translations;
 
-type GetExpression<T extends string> =
-  T extends `${infer Left}{${infer Ident}}${infer Right}`
-    ? Ident extends string
-      ? Ident
-      : Left extends string
-      ? GetExpression<Left>
-      : Right extends string
-      ? GetExpression<Right>
-      : never
+type Placeholders<T extends string> =
+  T extends `${infer Left}{${infer Placeholder}}${infer Right}`
+    ? Placeholders<Left> | Placeholder | Placeholders<Right>
     : never;
 
-type Placeholders = GetExpression<Translations[TranslationKey]>;
+type PlaceholdersOf<TKey extends TranslationKey> = Placeholders<
+  Translations[TKey]
+> extends never
+  ? []
+  : [Record<Placeholders<Translations[TKey]>, string>];
 
-export function translate<TranslationKey extends keyof Translations>(
-  i18nKey: TranslationKey,
-  ...variables: GetExpression<Translations[TranslationKey]> extends never
-    ? []
-    : [Record<Placeholders, string>]
+export function translate<TKey extends TranslationKey>(
+  key: TKey,
+  ...placeholders: PlaceholdersOf<typeof key>
 ) {
-  const translation = en[i18nKey];
+  const translation = en[key];
 
   if (!translation) {
     return "";
   }
 
-  if (variables.length > 0) {
-    return replacePlaceholders(translation, variables[0]);
+  if (placeholders.length > 0) {
+    return replacePlaceholders(key, translation, placeholders[0]);
   }
 
   return translation;
 }
 
-function replacePlaceholders<TranslationKey extends keyof Translations>(
+function replacePlaceholders<TKey extends TranslationKey>(
+  key: TKey,
   inputString: string,
-  replacementObject: GetExpression<Translations[TranslationKey]>,
+  replacementObject: PlaceholdersOf<typeof key>,
 ): string {
   return inputString.replace(/\{(\w+)\}/g, (match, placeholder) => {
     if (replacementObject.hasOwnProperty(placeholder)) {
@@ -49,6 +46,8 @@ function replacePlaceholders<TranslationKey extends keyof Translations>(
 }
 
 export function setupTranslations(_: HTMLDivElement) {
-  console.log(translate("key1"));
-  console.log(translate("key2", { placeholder1: "todo" }));
+  translate("key1");
+  translate("key2", { placeholder1: "test" });
+  translate("key3", { placeholder2: "test" });
+  translate("key4", { placeholder3: "test" });
 }
